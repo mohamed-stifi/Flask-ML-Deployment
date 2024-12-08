@@ -1,0 +1,7 @@
+flask
+keras
+tensorflow
+pillow
+scikit-learn
+transformers
+tf-keras

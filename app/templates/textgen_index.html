@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Generation App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/texgen_style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Text Generation App</h1>
+    <form action="{{ url_for('textgen')}}"method="post">
+      <label for="userInput">Enter your prompt:</label>
+      <textarea id="userInput" name="userInput" rows="3" placeholder="Your question:" required></textarea>
+      <button type="submit" id="generateBtn">Generate</button>
+    </form>
+
+    {% if generated_text %}
+        <div class="result">
+        <h2>Generated Text:</h2>
+        <p>{{generated_text}}</p>
+        </div>
+    {% endif%}
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
