@@ -35,7 +35,6 @@ def redirect_example():
             return render_template('index.html')
 
         else:
-            print('imagefile.filename: ', imagefile.filename)
             img_name = secure_filename(imagefile.filename)
             img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
             imagefile.save(img_path)
@@ -80,54 +79,7 @@ def textgen():
 
 @app.route('/home', methods=['GET'])
 def home():
-    return render_template('home.html', content="""
-    <h1>Welcome to the Flask Application Guide</h1>
-    <p>This application demonstrates multiple functionalities, including:</p>
-    <ul>
-        <li><b>Image Classification:</b> Upload an image to predict its class using a pre-trained VGG16 model.</li>
-        <li><b>Regression Prediction:</b> Predict employee salaries based on experience, test scores, and interview performance using a regression model.</li>
-        <li><b>Text Generation:</b> Generate text using a GPT-2 pipeline.</li>
-    </ul>
-    <h2>Deployment Instructions</h2>
-    <p>Follow these steps to deploy the application:</p>
-    <ol>
-        <li>Ensure you have <b>Docker</b> and <b>docker-compose</b> installed on your system.</li>
-        <li>Navigate to the project directory containing the <code>Dockerfile</code> and <code>docker-compose.yml</code> files.</li>
-        <li>Build and deploy the application using the following commands:</li>
-        <pre>
-        docker-compose build
-        docker-compose up
-        </pre>
-        <li>Access the application in your web browser at <a href="http://localhost:5000">http://localhost:5000</a>.</li>
-    </ol>
-    <p>The application uses the following configurations:</p>
-    <ul>
-        <li>Image uploads are stored in the <code>data</code> directory within the container.</li>
-        <li>Max upload size is restricted to 16 MB.</li>
-        <li>GPU acceleration is disabled with <code>os.environ['CUDA_VISIBLE_DEVICES'] = '-1'</code>.</li>
-    </ul>
-    <h3>Directory Structure</h3>
-    <pre>
-    /project
-    ├── Dockerfile
-    ├── docker-compose.yml
-    ├── app.py
-    ├── templates/
-    │   ├── index.html
-    │   ├── reg_index.html
-    │   ├── textgen_index.html
-    │   └── home.html
-    ├── static/
-    └── data/
-    </pre>
-    <h2>Automated Deployment</h2>
-    <p>To automate deployment, ensure the following:</p>
-    <ul>
-        <li>Include your trained models in the project directory (<code>model.pkl</code> and other dependencies).</li>
-        <li>Add a startup script to initialize any pre-requisites before launching Flask.</li>
-        <li>For continuous deployment, integrate the project with CI/CD tools like GitHub Actions or Jenkins.</li>
-    </ul>
-    """)
+    return render_template('home.html')
 
 
 

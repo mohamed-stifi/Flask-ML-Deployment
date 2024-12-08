@@ -1,1 +1,235 @@
-{{ content|safe }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Report: Distributed Automation of AI Pipelines</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+        }
+        .container {
+            padding: 2em;
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1, h2, h3 {
+            color: #4CAF50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 1em;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            font-family: monospace;
+            color: #333;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 1em;
+            overflow: auto;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #ffebcc;
+            border-left: 4px solid #ffa500;
+            margin: 1em 0;
+            padding: 1em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Project Report: Distributed Automation of AI Pipelines</h1>
+    </header>
+    <div class="container">
+        <section>
+            <h2>1. Objective</h2>
+            <p>This project aims to automate a distributed pipeline for AI applications by:</p>
+            <ul>
+                <li>Deploying AI models using Flask.</li>
+                <li>Securing the application.</li>
+                <li>Containerizing the application with Docker.</li>
+                <li>Implementing multiple model endpoints (Object Recognition, Regression, and Text Generation).</li>
+                <li>Automating deployment processes.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>2. Implementation Details</h2>
+
+            <h3>Step 1: Deploying a VGG16 Object Recognition Model</h3>
+            <p><strong>Endpoint:</strong> <code>/predict</code></p>
+            <p><strong>Description:</strong> This route accepts an image file, processes it using the pre-trained VGG16 model, and returns the object label and confidence score.</p>
+            <pre><code>
+@app.route('/predict', methods=['GET', 'POST'])
+def predict():
+    if request.method == 'GET':
+        return render_template('index.html')
+    if request.method == 'POST':
+        imagefile = request.files.get('imagefile', '')
+        if imagefile == '':
+            return render_template('index.html', error="No file uploaded")
+        img_name = secure_filename(imagefile.filename)
+        img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
+        imagefile.save(img_path)
+        label = vgg16_predict(img_path, vgg16_model)
+        classification = f'{label[1]} ({label[2]*100:.2f}%)'
+        return render_template('index.html', prediction=classification)
+            </code></pre>
+
+            <h3>Step 2: Securing File Uploads</h3>
+            <p>Used <code>secure_filename</code> from <code>werkzeug.utils</code> to sanitize uploaded file names.</p>
+            <p><strong>Validation:</strong> Ensured only image files are accepted by checking file extensions.</p>
+
+            <h3>Step 3: Containerizing the Application</h3>
+            <pre><code>
+# Dockerfile
+FROM python:3.11-slim-buster
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD [ "python", "app.py" ]
+            </code></pre>
+            <pre><code>
+# docker-compose.yml
+version: '3.8'
+services:
+  flask-app:
+    build: .
+    container_name: flask-app
+    ports:
+      - '5000:5000'
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    volumes:
+      - ./data:/app/data
+            </code></pre>
+
+            <h3>Step 4: Adding a Regression Model Endpoint</h3>
+            <p><strong>Endpoint:</strong> <code>/regpredict</code></p>
+            <pre><code>
+@app.route('/regpredict', methods=['GET', 'POST'])
+def regpredict():
+    if request.method == 'GET':
+        return render_template('reg_index.html')
+    if request.method == 'POST':
+        try:
+            experience = float(request.form['experience'])
+            test_score = float(request.form['test_score'])
+            interview_score = float(request.form['interview_score'])
+            input_features = np.array([experience, test_score, interview_score]).reshape(1, -1)
+            output = reg_model.predict(input_features)[0]
+            return render_template('reg_index.html', prediction_text=f'Employee Salary should be ${output}')
+        except Exception as e:
+            return render_template('reg_index.html', prediction_text=f'Error: {str(e)}')
+            </code></pre>
+
+            <h3>Step 5: Adding a Text Generation Endpoint</h3>
+            <p><strong>Endpoint:</strong> <code>/textgen</code></p>
+            <pre><code>
+@app.route('/textgen', methods=['GET', 'POST'])
+def textgen():
+    if request.method == 'GET':
+        return render_template('textgen_index.html')
+    if request.method == 'POST':
+        try:
+            prompt = request.form['userInput']
+            output = gpt_pipeline(prompt, do_sample=False)
+            return render_template('textgen_index.html', generated_text=output[0]['generated_text'])
+        except Exception as e:
+            return render_template('textgen_index.html', generated_text=f'Error: {str(e)}')
+            </code></pre>
+
+            <h3>Step 6: Adding a Home Route</h3>
+            <p><strong>Endpoint:</strong> <code>/home</code></p>
+
+            <h3>Deployment Instructions</h3>
+            <ol>
+                <li>Clone the repository.</li>
+                <li>Build the Docker container:
+                    <pre><code>docker-compose up --build</code></pre>
+                </li>
+                <li>Wait until the container setup is complete.</li>
+                <li>Access the application at <code>http://localhost:5000</code>.</li>
+                <li>Use the following routes:
+                    <ul>
+                        <li><code>/predict</code> for object recognition.</li>
+                        <li><code>/regpredict</code> for regression predictions.</li>
+                        <li><code>/textgen</code> for text generation.</li>
+                        <li><code>/home</code> for project overview and documentation.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>3. Evaluation</h2>
+            <ul>
+                <li><strong>Functionality:</strong> All endpoints work as intended, demonstrating diverse AI capabilities.</li>
+                <li><strong>Security:</strong> File uploads sanitized using <code>secure_filename</code>.</li>
+                <li><strong>Portability:</strong> Application containerized for easy deployment across different environments.</li>
+                <li><strong>Scalability:</strong> Supports the addition of new models with minimal modifications.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>4. Challenges and Solutions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Challenge</th>
+                        <th>Solution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Handling large file uploads</td>
+                        <td>Limited file size and verified extensions.</td>
+                    </tr>
+                    <tr>
+                        <td>Managing dependencies in Docker</td>
+                        <td>Used <code>requirements.txt</code> for consistency.</td>
+                    </tr>
+                    <tr>
+                        <td>Ensuring accurate predictions</td>
+                        <td>Pre-processed input data before predictions.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>5. Conclusion</h2>
+            <p>This project successfully demonstrates a distributed automation pipeline for AI applications using Flask, Docker, and modern AI frameworks. The modular design allows easy expansion for future AI model deployments.</p
+
